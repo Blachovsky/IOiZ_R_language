@@ -4,7 +4,7 @@ library(globalOptTests)
 library(plot3D)
 library(ggplot2)
 # wykresy funkcji Ackleya
-draw_ackley <- function()
+draw_ackley <- function(theta=50, phi=20)
 {
   ackley <- function(x, y) 
   {
@@ -12,31 +12,31 @@ draw_ackley <- function()
   }
   x <- y <- seq(-3, 3, by = 0.1)
   z <- outer(x, y, ackley)
-  persp3D(x,y,z, theta = 50, phi = 20,ticktype = "detailed", main='Wykres 3D Funkcji Ackleya')
-  points3D(0,0,0, add=TRUE, col='black', bg='white',pch=23, cex=1)
+  persp3D(x,y,z, theta = theta, phi = phi,ticktype = "detailed", main='Wykres 3D Funkcji Ackleya')
   filled.contour(x, y, z, main='Wykres temperaturowy funkcji Ackleya', 
-                  plot.axes = {axis(1);axis(2);points(0,0,col='black', 
-                  bg='white',pch=23, cex=1)})
+                 plot.axes = {axis(1);axis(2);points(0,0,col='black', 
+                                                     bg='white',pch=23, cex=1)})
 }
 
 # wykresy funkcji Rastrigina
-draw_rastrigin <-function()
+draw_rastrigin <-function(theta=50, phi=20)
 {
   Rastrigin <- function(x, y)
   {
-  20 + x^2 + y^2 - 10*(cos(2*pi*x) + cos(2*pi*y))
+    20 + x^2 + y^2 - 10*(cos(2*pi*x) + cos(2*pi*y))
   }
   x <- y <- seq(-3, 3, by = 0.1)
   z <- outer(x, y, Rastrigin)
-  persp3D(x, y, z, theta = 50, phi = -20,ticktype = "detailed", main='Wykres 3D funkcji Rastrigina')
-  points3D(0,0,0, add=TRUE, col='black', bg='white',pch=23, cex=1)
+  persp3D(x, y, z, theta = theta, phi = phi ,ticktype = "detailed", main='Wykres 3D funkcji Rastrigina')
   filled.contour(x, y, z, main='Wykres temperaturowy funkcji Rastrigina',
-                  plot.axes = {axis(1);axis(2);points(0,0,col='black', 
-                  bg='white',pch=23, cex=1)})
+                 plot.axes = {axis(1);axis(2);points(0,0,col='black', 
+                                                     bg='white',pch=23, cex=1)})
 }
 
 #wykonanie algorytmu genetycznego dla funkcji Ackleya
-ga_ackley <- function(){
+ga_ackley <- function(popSize = 20,maxiter = 5, run = 5, 
+                      crossover = 0.8, mutation=0.1, elitism =0.05)
+  {
   bounds_a <- getDefaultBounds("Ackleys")
   ackley_test <- function(x) {-goTest(par = x, fnName='Ackleys')}
   smallest_iter <- 1000
@@ -44,12 +44,15 @@ ga_ackley <- function(){
   list_mean <- list()
   list_median <- list()
   for(x in 1:10){
-  GA1 <- ga(type = "real-valued",
-            fitness = ackley_test, lower = c(bounds_a$lower) ,
-            upper = c(bounds_a$upper), popSize = 1000, maxiter = 5, run = 5)
-  list_fitnes[[x]] <- c(GA1@summary[1:GA1@iter])
-  list_mean[[x]] <- c(GA1@summary[1:GA1@iter, 2])
-  list_median[[x]] <- c(GA1@summary[1:GA1@iter, 4])
+    GA1 <- ga(type = "real-valued",
+              fitness = ackley_test, lower = c(bounds_a$lower) ,
+              upper = c(bounds_a$upper), popSize = popSize, maxiter = maxiter, 
+              run=run, pcrossover = crossover, pmutation = mutation, elitism = elitism
+              )
+    
+    list_fitnes[[x]] <- c(GA1@summary[1:GA1@iter])
+    list_mean[[x]] <- c(GA1@summary[1:GA1@iter, 2])
+    list_median[[x]] <- c(GA1@summary[1:GA1@iter, 4])
   }
   # Ucięcie wektorów do długości najkrótszego
   min_length <- min(sapply(list_fitnes, length))
@@ -80,10 +83,11 @@ ga_ackley <- function(){
     geom_line(aes(y= Median, color = "Median"), linetype = "dotted",linewidth=1.5) +
     labs(title = "Średnie wartości funkcji fitness dla Ackleya", x = "Pokolenie", y = "Wartość funkcji fitnes", color="Legenda") +
     scale_color_manual(values = c("Best" = "blue", "Mean" = "red", "Median" = "green"))
-  }
+}
 
 #wykonanie algorytmu genetycznego dla funkcji Rastrigina
-ga_rastrigin <-function(){
+ga_rastrigin <-function(popSize = 10,maxiter = 20, run = 10, 
+                        crossover=0.8, mutation=0.1, elitism =0.05 ){
   bounds_r <- getDefaultBounds("Rastrigin")
   rastrigin_test <- function(x){-goTest(par = x, fnName="Rastrigin")}
   smallest_iter <- 1000
@@ -93,7 +97,9 @@ ga_rastrigin <-function(){
   for (x in 1:10) {
     GA2 <- ga(type = "real-valued",
               fitness = rastrigin_test, lower = c(bounds_r$lower),
-              upper = c(bounds_r$upper), popSize = 1000, maxiter = 5, run=5)
+              upper = c(bounds_r$upper), popSize = popSize, maxiter = maxiter, 
+              run=run, pcrossover = crossover, pmutation = mutation, elitism = elitism
+              )
     
     list_fitnes[[x]] <- c(GA2@summary[1:GA2@iter])
     list_mean[[x]] <- c(GA2@summary[1:GA2@iter, 2])
@@ -131,14 +137,13 @@ ga_rastrigin <-function(){
     scale_color_manual(values = c("Best" = "blue", "Mean" = "red", "Median" = "green"))
   
 }
-#draw_ackley()
-#draw_rastrigin()
-ga_ackley()
-#ga_rastrigin()
-
-
-
-
-
+#draw_ackley(theta = 50, phi = 20)
+#draw_rastrigin(theta = 50, phi = 20)
+# ga_ackley(popSize = 50, maxiter = 100, run=50,
+#           elitism = 0.05, crossover = 0.8, mutation = 0.1
+#           )
+# ga_rastrigin(popSize = 50, maxiter = 100, run=50,
+#              elitism = 0.05, crossover = 0.8, mutation = 0.1
+#           )
 
 
