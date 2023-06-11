@@ -84,6 +84,7 @@ ga_mean_ackley <- function(popSize = 50,maxiter = 150, run = 20, elitism=1){
     )
     file_title <- sprintf("Średnie_wartości_dla_Ackleya_popSize=%d_maxiter=%d_run=%d_elityzm=%.1f", 
                           popSize, maxiter, run, elitism/100)
+    write.csv(df_mean_values, file = paste0("./wyniki/średnie/ackley/",file_title,".csv"))
     dynamic_title <- sprintf("Średnie wartości funkcji fitness dla Ackleya\npopSize = %d, maxiter = %d, run = %d, elityzm = %.1f", 
                              popSize, maxiter, run, elitism/100)
     dev.next()
@@ -145,6 +146,8 @@ ga_mean_rastrigin <- function(popSize = 50,maxiter = 150, run = 20, elitism=1){
   file_title <- sprintf("Średnie_wartości_dla_Rastrigina_popSize=%d_maxiter=%d_run=%d_elityzm=%.1f", 
                            popSize, maxiter, run, elitism/100)
   
+  write.csv(df_mean_values, file = paste0("./wyniki/średnie/rastrigin/",file_title,".csv"))
+  
   dynamic_title <- sprintf("Średnie wartości funkcji fitness dla Rastrigina\ndla popSize = %d, maxiter = %d, run = %d, elityzm =%.1f", 
                            popSize, maxiter, run, elitism/100)
   dev.next()
@@ -185,7 +188,8 @@ combined_mu_cr_ackley <- function(popSize = 200,maxiter = 5, run = 5){
     }
     m <- m + 1
   }
-  file_title = sprintf('Wyniki_GA-funkcji_Ackleya_Populacja:%d_Maxiter:%d_Run:%d', popSize, maxiter, run)
+  file_title = sprintf('Wyniki_GA_funkcji_Ackleya_Populacja=%d_Maxiter=%d_Run=%d', popSize, maxiter, run)
+  write.csv(results_matrix, file = paste0("./wyniki/wynik_krzyzowania/ackley/",file_title,".csv"))
   dynamic_title = sprintf('Wyniki GA funkcji Ackleya przy różnych wartościach kryżowania i mutacji \n Populacja: %d, Maxiter: %d, Run: %d', popSize, maxiter, run)
   dev.next()
   png(file = paste0("./wyniki/wynik_krzyzowania/ackley/",file_title,".png"), height = 600,width = 800)
@@ -219,7 +223,10 @@ combined_mu_cr_rastrigin <- function(popSize = 200,maxiter = 5, run = 5){
     }
     m <- m + 1
   }
-  file_title = sprintf('Wyniki_GA-funkcji_Rastrigina_Populacja:%d_Maxiter:%d_Run:%d', popSize, maxiter, run)
+  file_title = sprintf('Wyniki_GA-funkcji_Rastrigina_Populacja=%d_Maxiter=%d_Run=%d', popSize, maxiter, run)
+  
+  write.csv(results_matrix, file = paste0("./wyniki/wynik_krzyzowania/rastrigin/",file_title,".csv"))
+  
   dynamic_title = sprintf('Wyniki GA funkcji Rastrigina przy różnych wartościach kryżowania i mutacji \n Populacja: %d, Maxiter: %d, Run: %d', popSize, maxiter, run)
   dev.next()
   png(file = paste0("./wyniki/wynik_krzyzowania/rastrigin/",file_title,".png"), height = 600,width = 800)
@@ -227,7 +234,7 @@ combined_mu_cr_rastrigin <- function(popSize = 200,maxiter = 5, run = 5){
                  main= dynamic_title, 
                  color.palette = bl2gr.colors, plot.axes = {axis(1);axis(2)})
   title(xlab = "Prawdopodobieństwo krzyżowania", ylab = "Pradopodobieństwo mutacji")
-  def.off();
+  dev.off();
 }
 
 draw_pop_graph_ackley <- function(list_population_x, list_population_y, cros, mut, pop){
@@ -238,13 +245,18 @@ draw_pop_graph_ackley <- function(list_population_x, list_population_y, cros, mu
   # Obliczenie średniej dla każdego wiersza
   population_x_means <-rowMeans(df_population_x)
   population_y_means <-rowMeans(df_population_y)
-  
+  df_population <- data.frame(
+    "Iter" = 1:length(list_population_x),
+    "X" = population_x_means,
+    "Y" = population_y_means
+  )
   population_x_means <- as.list(population_x_means)
   population_y_means <- as.list(population_y_means)
   
   dynamic_title <- sprintf("Wykres populacji %d dla funckji Ackleya\nmutacja = %.1f, krzyżowanie = %.1f", 
                            pop, mut, cros)
   file_title = sprintf("Wykres_populacji_%d_dla_Ackleya_mutacja=%.1f_krzyżowanie=%.1f",pop, mut, cros)
+  write.csv(df_population, file = paste0("./wyniki/populacja/ackley/",file_title,".csv"))
   x1 <- x2 <- seq(-35, 30, by = 1)
   f <- outer(x1, x2, Ackley)
   dev.next()
@@ -266,12 +278,20 @@ draw_pop_graph_rastrigin <- function(list_population_x, list_population_y, cros,
   population_x_means <-rowMeans(df_population_x)
   population_y_means <-rowMeans(df_population_y)
   
+  df_population <- data.frame(
+    "Iter" = 1:length(population_x_means),
+    "X" = population_x_means,
+    "Y" = population_y_means
+  )
+  
   population_x_means <- as.list(population_x_means)
   population_y_means <- as.list(population_y_means)
   
   file_title = sprintf("Wykres_populacji_%d_dla_Rastrigina_mutacja=%.1f_krzyżowanie=%.1f",pop, mut, cros)
   dynamic_title <- sprintf("Wykres populacji %d dla funckji Rastrigina\nmutacja = %.1f, krzyżowanie = %.1f", 
                            pop, mut, cros)
+  
+  write.csv(df_population, file = paste0("./wyniki/populacja/rastrigin/",file_title,".csv"))
   x1 <- x2 <- seq(-500, 500, by = 10)
   f <- outer(x1, x2, Rastrigin)
   dev.next()
@@ -355,11 +375,11 @@ df <- data.frame(
 #   print(df[i,])
 #   ga_mean_rastrigin(df[i,3], df[i,2], df[i,4],df[i,1])
 # }
-draw_ackley_3D()
-draw_rastrigin_3D()
-# combined_mu_cr_ackley(popSize = 50, maxiter = 5, run = 5)
+# draw_ackley_3D()
+# draw_rastrigin_3D()
+# combined_mu_cr_ackley(popSize = 100, maxiter = 100, run = 20)
 # combined_mu_cr_rastrigin(popSize = 100, maxiter = 200, run = 50)
-# combined_mu_cr_ackley_pop(popSize = 50, maxiter = 5, run = 5)
-#combined_mu_cr_rastrigin_pop(popSize = 50, maxiter = 5, run = 5)
+# combined_mu_cr_ackley_pop(popSize = 100, maxiter = 100, run = 20)
+# combined_mu_cr_rastrigin_pop(popSize = 100, maxiter = 200, run = 50)
 
 
