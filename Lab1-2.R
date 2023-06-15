@@ -350,6 +350,69 @@ combined_mu_cr_rastrigin_pop <- function(popSize = 200,maxiter = 5, run = 5){
   }
 }
 
+# Własna implementacja krzyżowania one-point i mutacji flip-bit
+combined_mu_cr_ackley_our <- function(popSize = 200, maxiter = 5, run = 5) {
+  bounds <- getDefaultBounds("Ackleys")
+  cross_prob_range <- seq(0, 1, 0.1)
+  mut_prob_range <- seq(0, 1, 0.1)
+  results_matrix <- matrix(0, nrow = length(cross_prob_range), ncol = length(mut_prob_range))
+  
+  for (m in 1:length(cross_prob_range)) {
+    for (n in 1:length(mut_prob_range)) {
+      results <- c()
+      for (i in 1:10) {
+        GA <- ga(type = "real-valued",
+                 fitness = function(s) -Ackley(s[1], s[2]),
+                 lower = c(bounds$lower),
+                 upper = c(bounds$upper),
+                 popSize = popSize,
+                 maxiter = maxiter,
+                 run = run,
+                 pcrossover = cross_prob_range[m],
+                 pmutation = mut_prob_range[n],
+                 monitor = FALSE
+        )
+        
+        # Krzyżowanie one-point
+        crossed_pop <- GA@population
+        for (j in 1:(nrow(crossed_pop) - 1)) {
+          if (runif(1) < cross_prob_range[m]) {
+            crossover_point <- sample(2:(ncol(crossed_pop) - 1), 1)
+            crossed_pop[j, (crossover_point + 1):ncol(crossed_pop)] <- GA@population[(j + 1), (crossover_point + 1):ncol(crossed_pop)]
+          }
+        }
+        GA@population <- crossed_pop
+        
+        # Mutacja Bit-flip
+        mutated_pop <- GA@population
+        for (j in 1:nrow(mutated_pop)) {
+          for (k in 1:ncol(mutated_pop)) {
+            if (runif(1) < mut_prob_range[n]) {
+              mutated_pop[j, k] <- !mutated_pop[j, k]  # Odwrócenie bitu
+            }
+          }
+        }
+        GA@population <- mutated_pop
+        
+        results <- c(results, GA@fitnessValue)
+      }
+      results_matrix[m, n] <- mean(results)
+    }
+  }
+  
+  file_title <- sprintf('Wyniki_GA_funkcji_Ackleya_z_wlasnymi_funkcjami_Populacja=%d_Maxiter=%d_Run=%d', popSize, maxiter, run)
+  write.csv(results_matrix, file = paste0("./wyniki/wynik_krzyzowania/ackley/", file_title, ".csv"))
+  dynamic_title <- sprintf('Wyniki GA funkcji Ackleya przy różnych wartościach kryżowania one-point i mutacji bit-flip\nPopulacja: %d, Maxiter: %d, Run: %d', popSize, maxiter, run)
+  
+  dev.next()
+  png(file = paste0("./wyniki/wynik_krzyzowania/ackley/", file_title, ".png"), height = 600, width = 800)
+  filled.contour(cross_prob_range, mut_prob_range, results_matrix,
+                 main = dynamic_title,
+                 color.palette = bl2gr.colors, plot.axes = { axis(1); axis(2) })
+  title(xlab = "Prawdopodobieństwo krzyżowania", ylab = "Prawdopodobieństwo mutacji")
+  dev.off()
+}
+
 df <- data.frame(
   elityzm = c(1, 1, 1, 1, 1, 1, 1, 1, 
               50, 50, 50, 50, 50, 50, 50, 50,
@@ -381,5 +444,5 @@ df <- data.frame(
 # combined_mu_cr_rastrigin(popSize = 100, maxiter = 200, run = 50)
 # combined_mu_cr_ackley_pop(popSize = 100, maxiter = 100, run = 20)
 # combined_mu_cr_rastrigin_pop(popSize = 100, maxiter = 200, run = 50)
-
+#combined_mu_cr_ackley_our(popSize = 100, maxiter = 100, run = 20)
 
